@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'user.apps.UserConfig',
+    'users.apps.UsersConfig',
     'rest_framework'
 ]
 
@@ -203,3 +203,6 @@ REST_FRAMEWORK = {
     # 异常处理
     'EXCEPTION_HANDLER': 'utils.exception.exception_handler',
 }
+
+
+AUTH_USER_MODEL = 'users.User'
