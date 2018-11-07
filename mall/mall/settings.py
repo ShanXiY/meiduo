@@ -245,4 +245,7 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
 }
 
+# AUTHENTICATION_BACKENDS = ['utils.users.MobileUsernameModelBackend']
+# AUTHENTICATION_BACKENDS = ['utils.users.SettingBackend']
 AUTHENTICATION_BACKENDS = ['utils.users.MobileUsernameModelBackend']
+
