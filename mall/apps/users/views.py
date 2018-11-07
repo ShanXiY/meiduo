@@ -43,6 +43,7 @@ CreateAPIView
 """
 from  rest_framework.mixins import CreateModelMixin
 from rest_framework.generics import CreateAPIView
+from rest_framework_jwt.utils import jwt_response_payload_handler
 
 class RegisterCreateUserView(APIView):
 

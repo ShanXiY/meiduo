@@ -233,3 +233,14 @@ REST_FRAMEWORK = {
 
 
 AUTH_USER_MODEL = 'users.User'
+
+import datetime
+
+JWT_AUTH = {
+    # 自定义返回数据的方法
+    'JWT_RESPONSE_PAYLOAD_HANDLER':
+    'utils.users.jwt_response_payload_handler',
+
+    # token的有效期
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+}
