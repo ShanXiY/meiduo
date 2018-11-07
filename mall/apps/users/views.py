@@ -53,7 +53,7 @@ class RegisterCreateUserView(APIView):
 
         # 2,校验数据
         serializer = RegisterCreateUserSerializer(data=data)
-        serializer.is_valid()
+        serializer.is_valid(raise_exception=True)
 
         # 3.数据入库
         serializer.save()
@@ -61,4 +61,26 @@ class RegisterCreateUserView(APIView):
         # 4.返回响应
         return Response(serializer.data)
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import User
+# Create your views here.
+
+class RegisterPhoneCountAPIView(APIView):
+    """
+    查询手机号的个数
+    GET: /users/phones/(?P<mobile>1[345789]\d{9})/count/
+    """
+    def get(self,request,mobile):
+
+        #通过模型查询获取手机号个数
+        count = User.objects.filter(mobile=mobile).count()
+        #组织数据
+        context = {
+            'count':count,
+            'phone':mobile
+        }
+
+        return Response(context)
 

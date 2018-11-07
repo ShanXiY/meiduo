@@ -25,7 +25,17 @@ SECRET_KEY = 'cy6q8kgwh_ch2-052@dcvsu_abz=$mk=oql=oc!qkgw#9pyp)0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#白名单 就是允许那些域名进行跨域访问
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1:8080',
+    'localhost:8080',
+    'www.meiduo.site:8080'
+)
+CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
+
+#允许 api.meiduo.site和127.0.0.1来访问我们的后台，这个只是后台的安全策略，和cors没有关系
+ALLOWED_HOSTS = ['api.meiduo.site','127.0.0.1']
 
 
 import sys
@@ -41,10 +51,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
-    'rest_framework'
+    'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    #必须放到第一位
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -209,6 +222,13 @@ LOGGING = {
 REST_FRAMEWORK = {
     # 异常处理
     'EXCEPTION_HANDLER': 'utils.exception.exception_handler',
+
+    #修改认证的顺序，让JWT认证在第一位，优先采用JWT认证
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
 }
 
 

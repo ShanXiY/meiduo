@@ -1,6 +1,7 @@
 var vm = new Vue({
 	el: '#app',
 	data: {
+	    host,
 		error_name: false,
 		error_password: false,
 		error_check_password: false,
@@ -17,6 +18,7 @@ var vm = new Vue({
 		sms_code: '',
 		allow: false,
 		error_name_message: '请输入5-20个字符的用户',
+		error_phone_message: '您输入的手机号格式不正确',
 		image_code_id: '',  // 图片验证码编号
     	image_code_url: '',  // 验证码图片路径
 		sending_flag: false,
@@ -30,6 +32,31 @@ var vm = new Vue({
 	},
 
 	methods: {
+		check_phone: function (){
+            var re = /^1[345789]\d{9}$/;
+            if(re.test(this.mobile)) {
+                this.error_phone = false;
+            } else {
+                this.error_phone_message = '您输入的手机号格式不正确';
+                this.error_phone = true;
+            }
+            if (this.error_phone == false) {
+                axios.get('http://127.0.0.1:8000'+'/users/phones/'+ this.mobile + '/count/', {
+                        responseType: 'json'
+                    })
+                    .then(response => {
+                        if (response.data.count > 0) {
+                            this.error_phone_message = '手机号已存在';
+                            this.error_phone = true;
+                        } else {
+                            this.error_phone = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error.response.data);
+                    })
+            }
+        },
 
 		// 生成uuid
 		generate_uuid: function(){
