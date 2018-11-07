@@ -21,10 +21,12 @@ class RegisterCreateUserSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(label='确认密码',write_only=True)
     allow = serializers.CharField(label='是否同意协议',write_only=True)
 
+    token = serializers.CharField(label='token',read_only=True)
+
     #ModelSerializer 自动生成字段的时候是根据fields列表生成的
     class Meta:
         model = User
-        fields = ['username','password','mobile','sms_code','password2','allow']
+        fields = ['username','password','mobile','sms_code','password2','allow','token']
 
         extra_kwargs = {
             'username': {
