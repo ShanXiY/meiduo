@@ -23,7 +23,7 @@ class OauthQQURLView(APIView):
 
     def get(self,request):
 
-        state = 'test'
+        state = '/'
 
         #1.创建oauth对象
         #client_id=None, client_secret=None, redirect_uri=None, state=None
@@ -134,10 +134,22 @@ class OauthQQUserView(APIView):
         serializer.is_valid(raise_exception=True)
 
         #3.保存数据
-        serializer.save()
+        qquser = serializer.save()
 
         #4.返回响应
-        return Response()
+        from rest_framework_jwt.settings import api_settings
+
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+        payload = jwt_payload_handler(qquser.user)
+        token = jwt_encode_handler(payload)
+
+        return Response({
+            'user_id': qquser.user.id,
+            'username': qquser.user.username,
+            'token': token
+        })
 
 # 加密签名
 # from itsdangerous import JSONWebSignatureSerializer # 错误的
@@ -159,12 +171,12 @@ token = serializer.dumps(data)
 serializer.loads(token)
 
 #5.有效期
-serializer = Serializer(settings.SECRET_KEY,1)
-
-data = {'openid':'123456789'}
-
-token = serializer.dumps(data)
-
-#4.对数据进行解密
-serializer.loads(token)
+# serializer = Serializer(settings.SECRET_KEY,1)
+#
+# data = {'openid':'123456789'}
+#
+# token = serializer.dumps(data)
+#
+# #4.对数据进行解密
+# serializer.loads(token)
 

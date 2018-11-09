@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from oauth.utils import check_open_id
+from users.models import User
 from .models import OAuthQQUser
 from django_redis import get_redis_connection
 
@@ -28,6 +29,8 @@ class OauthQQUserSerializer(serializers.Serializer):
         openid = check_open_id(attrs.get('access_token'))
         if openid is None:
             raise serializers.ValidationError('access_token错误')
+
+        attrs['openid']=openid
         #1.2 sms_code
 
         sms_code= attrs.get('sms_code')
@@ -41,7 +44,44 @@ class OauthQQUserSerializer(serializers.Serializer):
         if redis_code.decode() != sms_code:
             raise serializers.ValidationError('验证码不一致')
         # 1.3 判断手机号
-        #     如果注册过,需要判断 密码是否正确
-        #     如果没有注册过,创建用户
+        mobile = attrs.get('mobile')
+        try:
+            user = User.objects.get(mobile=mobile)
+        except User.DoesNotExist:
+            pass
 
+        #     如果没有注册过,创建用户
+        else:
+            #     如果注册过,需要判断 密码是否正确
+            if not user.check_password(attrs['password']):
+                raise serializers.ValidationError('密码不正确')
+            attrs['user'] = user
         return attrs
+
+    # data --> attrs --> validated_data
+    def create(self, validated_data):
+        """
+        最终要保存 user 和openid信息
+        """
+
+        user = validated_data.get('user')
+        openid = validated_data.get('openid')
+
+        if user is None:
+
+            #创建
+            user = User.objects.create(
+                username=validated_data.get('mobile'),
+                mobile=validated_data.get('mobile'),
+                password=validated_data.get('password')
+            )
+
+            #对密码进行加密处理
+            user.set_password(validated_data.get('password'))
+            user.save()
+
+        qquser = OAuthQQUser.objects.create(
+            user=user,
+            openid=openid
+        )
+        return qquser
