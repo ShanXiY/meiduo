@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'corsheaders',
     # 安装应用
     'oauth.apps.OauthConfig',
+    'areas.apps.AreasConfig'
 ]
 
 MIDDLEWARE = [
