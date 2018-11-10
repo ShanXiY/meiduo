@@ -115,3 +115,10 @@ class UserCenterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id','username','mobile','email','email_active')
+
+
+class UserEmailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email',)
