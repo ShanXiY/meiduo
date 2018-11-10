@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 
 from users.models import User
 from users.serializers import RegisterCreateUserSerializer
-from users.utils import generic_active_url
+from users.utils import generic_active_url, get_active_user
+
 
 class RegisterUsernameCountView(APIView):
     def get(self,request,username):
@@ -217,4 +218,35 @@ class UserEmailView(APIView):
 #         # 5. 发送激活邮件
 #         # 6. 返回响应
 #         return Response(serializer.data)
+
+from rest_framework import status
+class UserActiveEmailView(APIView):
+    """
+
+        当用户点击激活连接的时候,会跳转到一个页面,这个页面中含有 token(含有 用户id和email信息)信息
+        前端需要发送一个ajax请求,将 token 发送给后端
+
+        # 1. 接受token
+        # 2. 对token进行解析
+        # 3. 返回响应
+
+        GET     /users/emails/verification/?token=xxx
+        """
+    def get(self,request):
+
+        # 1. 接受token
+        token = request.query_params.get('token')
+        if token is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+        # 2. 对token进行解析
+        user = get_active_user(token)
+        if user is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        user.email_active=True
+        user.save()
+
+        # 3. 返回响应
+        return Response({'msg':'ok'})
 

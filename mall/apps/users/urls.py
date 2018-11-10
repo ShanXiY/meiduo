@@ -12,4 +12,5 @@ urlpatterns = [
     #/users/emails/
     url(r'^emails/$',views.UserEmailView.as_view()),
     # url(r'^emails/$',views.UserCenterEmailView.as_view()),
+    url(r'^emails/verification/$',views.UserActiveEmailView.as_view()),
 ]
