@@ -250,3 +250,45 @@ class UserActiveEmailView(APIView):
         # 3. 返回响应
         return Response({'msg':'ok'})
 
+"""
+
+新增地址功能
+
+前端将用户提交的数据 传递给后端
+
+1.后端接受数据
+2.对数据进行校验
+3.数据入库
+4.返回响应
+
+POST    users/addresses/
+
+"""
+
+from rest_framework.generics import CreateAPIView
+from .serializers import AddressSerializer
+from rest_framework.generics import GenericAPIView
+
+class AddressCreateAPIView(CreateAPIView):
+    serializer_class = AddressSerializer
+
+"""
+修改标题
+PUT    users/address/title/
+
+"""
+
+from rest_framework.decorators import action
+from .serializers import AddressTitleSerializer
+
+
+@action(methods=['put'], detail=True)
+def title(self, request, pk=None, address_id=None):
+    """
+    修改标题
+    """
+    address = self.get_object()
+    serializer = AddressTitleSerializer(instance=address, data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)

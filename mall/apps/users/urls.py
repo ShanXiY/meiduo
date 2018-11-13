@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^emails/$',views.UserEmailView.as_view()),
     # url(r'^emails/$',views.UserCenterEmailView.as_view()),
     url(r'^emails/verification/$',views.UserActiveEmailView.as_view()),
+    url(r'^addresses/$',views.AddressCreateAPIView.as_view()),
 ]

@@ -3,22 +3,24 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .models import Area
 from .serializers import AreaSerializer, SubAreaSerializer
+from rest_framework_extensions.cache.mixins import ListCacheResponseMixin,RetrieveCacheResponseMixin
+from rest_framework_extensions.cache.mixins import CacheResponseMixin
 
 # Create your views here.
 
 
-class AreasViewSet(ReadOnlyModelViewSet):
+class AreaViewSet(CacheResponseMixin,ReadOnlyModelViewSet):
     """
     行政区划信息
     """
-    pagination_class = None  # 区划信息不分页
+    # pagination_class = None  # 区划信息不分页
 
     def get_queryset(self):
         """
         提供数据集
         """
         if self.action == 'list':
-            return Area.objects.filter(parent=None)
+            return Area.objects.filter(parent_id__isnull=True)
         else:
             return Area.objects.all()
 

@@ -9,15 +9,15 @@ class AreaSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Area
-        fields = ('id', 'name')
+        fields = ['id', 'name']
 
 
 class SubAreaSerializer(serializers.ModelSerializer):
     """
     子行政区划信息序列化器
     """
-    subs = AreaSerializer(many=True, read_only=True)
+    subs = AreaSerializer(many=True)
 
     class Meta:
         model = Area
-        fields = ('id', 'name', 'subs')
+        fields = ['id', 'name', 'subs']
