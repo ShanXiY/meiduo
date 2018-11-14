@@ -13,7 +13,7 @@ class AreaViewSet(CacheResponseMixin,ReadOnlyModelViewSet):
     """
     行政区划信息
     """
-    # pagination_class = None  # 区划信息不分页
+    pagination_class = None  # 区划信息不分页
 
     def get_queryset(self):
         """

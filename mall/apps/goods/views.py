@@ -87,12 +87,12 @@ class SKUListAPIView(ListAPIView):
     ordering_fields = ['create_time','price','sales']
 
     #分页类
-    pagination_class = StandardResultsSetPagination
+    # pagination_class = StandardResultsSetPagination
 
     serializer_class = HotSKUSerializer
 
     def get_queryset(self):
-        def get_queryset(self):
-            category_id = self.kwargs['category_id']
 
-            return SKU.objects.filter(category_id=category_id, is_launched=True).order_by('-sales')[:2]
+        category_id = self.kwargs['category_id']
+
+        return SKU.objects.filter(category_id=category_id, is_launched=True)

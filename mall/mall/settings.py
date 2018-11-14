@@ -252,7 +252,7 @@ REST_FRAMEWORK = {
     ),
 
     # 分页
-    # 'DEFAULT_PAGINATION_CLASS': 'utils.pagination.StandardResultsSetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'utils.pagination.StandardResultsSetPagination',
 
 }
 
