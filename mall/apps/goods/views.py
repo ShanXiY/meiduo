@@ -3,6 +3,7 @@ from rest_framework.response import Response
 
 from goods.models import SKU
 from goods.serializers import HotSKUSerializer
+from utils.pagination import StandardResultsSetPagination
 
 """
 所谓的静态化 其实就是 生成一个html 让用户去访问html
@@ -61,3 +62,37 @@ class HotSKUView(ListAPIView):
 
         return SKU.objects.filter(category_id=category_id,is_launched=True).order_by('-sales')[:2]
 
+"""
+列表页面数据获取
+
+
+1. 先实现返回所有分类数据
+2. 再实现排序
+3. 最后实现 分页
+
+
+GET     /goods/categories/(?P<category_id>\d+)/skus/?ordering=-price&page_size=2&page=3
+"""
+
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import OrderingFilter
+
+
+class SKUListAPIView(ListAPIView):
+
+    #排序
+    filter_backends = [OrderingFilter]
+
+    #设置拍序字段
+    ordering_fields = ['create_time','price','sales']
+
+    #分页类
+    pagination_class = StandardResultsSetPagination
+
+    serializer_class = HotSKUSerializer
+
+    def get_queryset(self):
+        def get_queryset(self):
+            category_id = self.kwargs['category_id']
+
+            return SKU.objects.filter(category_id=category_id, is_launched=True).order_by('-sales')[:2]
