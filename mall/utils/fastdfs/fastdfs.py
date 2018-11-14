@@ -14,7 +14,14 @@ class MyStorage(Storage):
     # def __init__(self, conf_path=None,ip=None,name):  这样定义的错误的
     #                                               因为我们在初始化的时候要传参数
     def __init__(self,conf_path=None,ip=None):
-        pass
+        if not conf_path:
+            conf_path = settings.FDFS_CLIENT_CONF
+        self.conf_path = conf_path
+
+        if not ip:
+            ip = settings.FDFS_URL
+        self.ip = ip
+
 
         # 3.您的存储类必须实现_open()和_save() 方法以及适用于您的存储类的任何其他方法
 
@@ -75,3 +82,10 @@ class MyStorage(Storage):
 
         return self.ip + name
 
+"""
+from fdfs_client.client import Fdfs_client
+client=Fdfs_client('utils/fastdfs/client.conf')
+client.upload_by_filename('/home/python/Desktop/meiduo/小渔船.jpg')
+/home/python/Desktop/meiduo
+group1/M00/00/00/wKhqgVvrztyAK1KFAAF7hAuKIz8352.jpg
+"""
