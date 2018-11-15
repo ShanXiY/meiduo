@@ -35,7 +35,7 @@ CORS_ORIGIN_WHITELIST = (
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
 
 #允许 api.meiduo.site和127.0.0.1来访问我们的后台，这个只是后台的安全策略，和cors没有关系
-ALLOWED_HOSTS = ['api.meiduo.site','127.0.0.1']
+ALLOWED_HOSTS = ['api.meiduo.site','127.0.0.1','192.168.106.129']
 
 
 import sys
