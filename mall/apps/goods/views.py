@@ -96,3 +96,4 @@ class SKUListAPIView(ListAPIView):
         category_id = self.kwargs['category_id']
 
         return SKU.objects.filter(category_id=category_id, is_launched=True)
+

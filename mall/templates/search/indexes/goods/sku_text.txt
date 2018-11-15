@@ -1,0 +1,6 @@
+# 模板文件路径必须要正确  模板文件夹下/search/indexes/子应用文件夹/模型类名小写_text.txt
+#  object 相当于 模型的实例对象
+
+{{ object.name }}
+{{ object.caption }}
+{{ object.id }}
