@@ -34,8 +34,8 @@ GET     goods/categories/cat_id/hotskus/
 """
 
 
-from rest_framework.views import APIView
-
+# from rest_framework.views import APIView
+#
 # class HotSKUView(APIView):
 #     def get(self,request,category_id):
 #
@@ -50,11 +50,11 @@ from rest_framework.views import APIView
 #
 #         # 4.返回数据
 #         return Response(serializer.data)
-
+#
 from rest_framework.generics import ListAPIView
 
 class HotSKUView(ListAPIView):
-
+    pagination_class = None
     serializer_class = HotSKUSerializer
 
     def get_queryset(self):
