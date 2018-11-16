@@ -1,11 +1,13 @@
 from django.shortcuts import render
 
 # Create your views here.
+from django_redis import get_redis_connection
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from goods.models import SKU
 from users.models import User
-from users.serializers import RegisterCreateUserSerializer
+from users.serializers import RegisterCreateUserSerializer, SKUSerializer
 from users.utils import generic_active_url, get_active_user
 
 
@@ -292,3 +294,40 @@ def title(self, request, pk=None, address_id=None):
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data)
+
+from rest_framework import mixins
+from rest_framework.generics import GenericAPIView
+from .serializers import  AddUserBrowsingHistorySerializer
+from rest_framework.permissions import IsAuthenticated
+
+class UserBrowsingHistoryView(mixins.CreateModelMixin, GenericAPIView):
+    """
+    用户浏览历史记录
+    POST /users/browerhistories/
+    GET  /users/browerhistories/
+    数据只需要保存到redis中
+    """
+    serializer_class = AddUserBrowsingHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        保存
+        """
+        return self.create(request)
+
+    def get(self, request):
+        """获取"""
+        # 获取用户信息
+        user_id = request.user.id
+        # 连接redis
+        redis_conn = get_redis_connection('history')
+        # 获取数据
+        history_sku_ids = redis_conn.lrange('history_%s' % user_id, 0, 5)
+        skus = []
+        for sku_id in history_sku_ids:
+            sku = SKU.objects.get(pk=sku_id)
+            skus.append(sku)
+        # 序列化
+        serializer = SKUSerializer(skus, many=True)
+        return Response(serializer.data)
