@@ -185,20 +185,41 @@ class AddUserBrowsingHistorySerializer(serializers.Serializer):
 
         return value
 
+    # def create(self, validated_data):
+    #
+    #     #获取用户信息
+    #     user_id = self.context['request'].user.id
+    #     #获取商品id
+    #     sku_id = validated_data['sku_id']
+    #     #连接redis
+    #     redis_conn = get_redis_connection('history')
+    #     #移除已经存在的本记录
+    #     redis_conn.lrem('history_%s'%user_id,0,sku_id)
+    #     #添加新的记录
+    #     redis_conn.lpush('history_%s'%user_id,sku_id)
+    #     #保存最多5条记录
+    #     redis_conn.ltrim('history_%s'%user_id,0,4)
+    #     return validated_data
+
+
     def create(self, validated_data):
 
-        #获取用户信息
-        user_id = self.context['request'].user.id
-        #获取商品id
-        sku_id = validated_data['sku_id']
-        #连接redis
-        redis_conn = get_redis_connection('history')
-        #移除已经存在的本记录
-        redis_conn.lrem('history_%s'%user_id,0,sku_id)
-        #添加新的记录
-        redis_conn.lpush('history_%s'%user_id,sku_id)
-        #保存最多5条记录
-        redis_conn.ltrim('history_%s'%user_id,0,4)
+        user = self.context['request'].user
+
+        redis_con = get_redis_connection('history')
+
+        # 2.1 获取商品id
+        sku_id = validated_data.get('sku_id')
+
+        # 2.2 先删除 这个 sku_id  为什么删除呢? 去重
+        redis_con.lrem('history_%s' % user.id, 0, sku_id)
+
+        # 2.3 保存到redis中
+        redis_con.lpush('history_%s' % user.id, sku_id)
+
+        # 2.4对列表进行修剪
+        redis_con.ltrim('history_%s' % user.id, 0, 4)
+
         return validated_data
 
 

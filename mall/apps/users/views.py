@@ -331,3 +331,60 @@ class UserBrowsingHistoryView(mixins.CreateModelMixin, GenericAPIView):
         # 序列化
         serializer = SKUSerializer(skus, many=True)
         return Response(serializer.data)
+
+
+# class UserHistoryView(APIView):
+#     permission_classes = [IsAuthenticated]
+#
+#     def post(self,request):
+#         user = request.user
+#         #1.接收数据，对数据进行校验
+#         serializer = AddUserBrowsingHistorySerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#
+#         #2.保存数据  --redis 连接redis
+#         redis_con = get_redis_connection('history')
+#
+#         #2.1获取商品id
+#         sku_id = serializer.validated_data.get('sku_id')
+#
+#         #2.2先删除 sku_id 原因是为了去重
+#         redis_con.lrem('history_%s'%user.id,sku_id)
+#
+#         #2.3保存到redis中
+#         redis_con.lpush('history_%s'%user.id,sku_id)
+#
+#         #2.4对列表进行修剪
+#         redis_con.ltrim('history_%s'%user.id,0,4)
+#
+#         #3.返回响应
+#         return Response(serializer.data)
+#     def get(self,request):
+#         #1.接收数据(用户信息，以jwt的形式传递)
+#         user = request.user
+#         #2.查询数据
+#         redis_conn = get_redis_connection('history')
+#
+#         sku_ids = redis_conn.lrange('history_%s'%user.id,0,5)
+#
+#         skus = []
+#         for sku_id in sku_ids:
+#             sku = SKU.objects.get(id=sku_id)
+#             skus.append(sku)
+#
+#         serializer = SKUSerializer(skus,many=True)
+#
+#         #3.返回响应
+#         return Response(serializer.data)
+#
+
+
+from rest_framework.mixins import CreateModelMixin
+
+class UserHistoryView(CreateModelMixin,GenericAPIView):
+
+    serializer_class = AddUserBrowsingHistorySerializer
+
+    def post(self,request):
+
+        return self.create(request)
