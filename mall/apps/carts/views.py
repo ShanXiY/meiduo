@@ -204,3 +204,77 @@ class CartView(APIView):
         serializer = CartSKUSerializer(skus, many=True)
 
         return Response(serializer.data)
+
+    """
+    修改购物车的业务逻辑
+
+    用户在修改数据的时候,前端应该将 修改之后的  sku_id,count,selected 发送给后端
+    额外强调一下 ,我们的count是用户 最终的值
+
+    1. 接收数据,并进行数据的校验
+    2. 获取sku_id,count,selected的值
+    3. 获取用户信息,并进行判断
+    4. 登录用户redis
+        4.1 连接redis
+        4.2 更新数据
+        4.3 返回数据 (一定要将 最终的商品数据 返回回去)
+    5. 未登录用户 cookie
+        5.1 读取cookie,并判断数据是否存在
+        5.2 更新数据 dict
+        5.3 对字典进行处理
+        5.4 返回响应(一定要将 最终的商品数据 返回回去)
+
+
+    """
+    def put(self,request):
+        #1.接收数据，进行数据的校验
+        serializer = CartSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        #2.获取sku_id,count,selected 的值
+        sku_id = serializer.data.get('sku_id')
+        count = serializer.data.get('count')
+        selected = serializer.data.get('selected')
+
+        #3.获取用户信息，进行判断
+        try:
+            user = request.user
+        except Exception:
+            user = None
+        if user is not None and user.is_authenticated:
+            #4.登录用户redis
+            #4.1连接redis
+            redis_conn = get_redis_connection('cart')
+            #4.2更新数据
+            redis_conn.hset('cart_%s'%user.id,sku_id,count)
+            #set
+            #选中状态
+            if selected:
+                redis_conn.sadd('cart_%s'%user.id,sku_id)
+            else:
+                #未选中
+                redis_conn.srem('cart_%s'%user.id,sku_id)
+            #4.3返回数据(要将最终的商品数据返回回去)
+            return Response(serializer.data)
+
+        else:
+            #5.未登录用户 cookie
+            #5.1读取cookie，并判断数据是否存在
+            cookie_str = request.COOKIES.get('cart')
+            if cookie_str is not None:
+                #读取数据
+                cart = pickle.loads(base64.b64decode(cookie_str))
+            else:
+                cart = {}
+            #5.2更新数据
+            if sku_id in cart:
+                cart[sku_id] = {
+                    'count':count,
+                    'selected':selected
+                }
+            #5.3对字典进行处理
+            new_cookie = base64.b32decode(pickle.dumps(cart)).decode()
+            #5.4返回响应
+            response = Response(serializer.data)
+            response.set_cookie('cart',new_cookie)
+            return response

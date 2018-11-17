@@ -16,5 +16,5 @@ urlpatterns = [
     url(r'^addresses/$',views.AddressCreateAPIView.as_view()),
 
     #/users/browerhistories/
-    url(r'^browerhistories/$',views.UserBrowsingHistoryView.as_view(),name='history'),
+    url(r'^browerhistories/$',views.UserHistoryView.as_view(),name='history'),
 ]

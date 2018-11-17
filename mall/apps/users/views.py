@@ -300,37 +300,37 @@ from rest_framework.generics import GenericAPIView
 from .serializers import  AddUserBrowsingHistorySerializer
 from rest_framework.permissions import IsAuthenticated
 
-class UserBrowsingHistoryView(mixins.CreateModelMixin, GenericAPIView):
-    """
-    用户浏览历史记录
-    POST /users/browerhistories/
-    GET  /users/browerhistories/
-    数据只需要保存到redis中
-    """
-    serializer_class = AddUserBrowsingHistorySerializer
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        """
-        保存
-        """
-        return self.create(request)
-
-    def get(self, request):
-        """获取"""
-        # 获取用户信息
-        user_id = request.user.id
-        # 连接redis
-        redis_conn = get_redis_connection('history')
-        # 获取数据
-        history_sku_ids = redis_conn.lrange('history_%s' % user_id, 0, 5)
-        skus = []
-        for sku_id in history_sku_ids:
-            sku = SKU.objects.get(pk=sku_id)
-            skus.append(sku)
-        # 序列化
-        serializer = SKUSerializer(skus, many=True)
-        return Response(serializer.data)
+# class UserBrowsingHistoryView(mixins.CreateModelMixin, GenericAPIView):
+#     """
+#     用户浏览历史记录
+#     POST /users/browerhistories/
+#     GET  /users/browerhistories/
+#     数据只需要保存到redis中
+#     """
+#     serializer_class = AddUserBrowsingHistorySerializer
+#     permission_classes = [IsAuthenticated]
+#
+#     def post(self, request):
+#         """
+#         保存
+#         """
+#         return self.create(request)
+#
+#     def get(self, request):
+#         """获取"""
+#         # 获取用户信息
+#         user_id = request.user.id
+#         # 连接redis
+#         redis_conn = get_redis_connection('history')
+#         # 获取数据
+#         history_sku_ids = redis_conn.lrange('history_%s' % user_id, 0, 5)
+#         skus = []
+#         for sku_id in history_sku_ids:
+#             sku = SKU.objects.get(pk=sku_id)
+#             skus.append(sku)
+#         # 序列化
+#         serializer = SKUSerializer(skus, many=True)
+#         return Response(serializer.data)
 
 
 # class UserHistoryView(APIView):
@@ -388,3 +388,19 @@ class UserHistoryView(CreateModelMixin,GenericAPIView):
     def post(self,request):
 
         return self.create(request)
+
+    def get(self, request):
+        """获取"""
+        # 获取用户信息
+        user_id = request.user.id
+        # 连接redis
+        redis_conn = get_redis_connection('history')
+        # 获取数据
+        history_sku_ids = redis_conn.lrange('history_%s' % user_id, 0, 5)
+        skus = []
+        for sku_id in history_sku_ids:
+            sku = SKU.objects.get(pk=sku_id)
+            skus.append(sku)
+        # 序列化
+        serializer = SKUSerializer(skus, many=True)
+        return Response(serializer.data)
