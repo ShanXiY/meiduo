@@ -126,12 +126,22 @@ class CartView(APIView):
         if user is not None and user.is_authenticated:
             # 如果为登录用户则数据保存到redis中
             redis_conn = get_redis_connection('cart')
+
+            # # redis_conn.hset('cart_%s'%user.id,sku_id,count)
+            # redis_conn.hincrby('cart_%s' % user.id, sku_id, count)
+            #
+            # # set
+            # redis_conn.sadd('cart_selected_%s' % user.id, sku_id)
+
+            #创建管道
             pl = redis_conn.pipeline()
             # 记录购物车商品数量 hash
             pl.hincrby('cart_%s' % user.id, sku_id, count)
             # 勾选
             if selected:
                 pl.sadd('cart_selected_%s' % user.id, sku_id)
+
+            #管道执行命令
             pl.execute()
             # 返回响应
             return Response(serializer.data)
