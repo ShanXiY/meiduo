@@ -6,7 +6,7 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework.response import Response
 
-from carts.serializers import CartSerializer, CartSKUSerializer
+from carts.serializers import CartSerializer, CartSKUSerializer, CartDeleteSerializer
 from django_redis import get_redis_connection
 
 from goods.models import SKU
@@ -250,7 +250,7 @@ class CartView(APIView):
             #set
             #选中状态
             if selected:
-                redis_conn.sadd('cart_%s'%user.id,sku_id)
+                redis_conn.sadd('cart_selected_%s'%user.id,sku_id)
             else:
                 #未选中
                 redis_conn.srem('cart_%s'%user.id,sku_id)
@@ -278,3 +278,61 @@ class CartView(APIView):
             response = Response(serializer.data)
             response.set_cookie('cart',new_cookie)
             return response
+
+    """
+    删除功能
+    用户点击删除按钮的时候,前端应该发送一个 ajax请求,请求中包含 sku_id        jwt
+
+    1. 接收参数,并对参数进行校验
+    2. 获取用户信息,并根据用户信息进行判断
+    3. 登录用户redis
+        3.1 连接redis
+        3.2 删除数据 hash,set
+        3.3 返回响应
+    4. 未登录用户 cookie
+        4.1 获取cookie数据并进行判断
+        4.2 删除数据
+        4.3 dict 对购物车数据进行处理
+        4.4 返回响应
+
+    """
+    def delete(self,request):
+        #1.接收参数，对参数进行校验
+        serializer = CartDeleteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        sku_id = serializer.data.get('sku_id')
+        #2.获取用户信息，根据用户信息进行判断
+        try:
+            user = request.user
+        except Exception:
+            user = None
+        if user is not None and user.is_authenticated:
+            # 3. 登录用户redis
+            #     3.1 连接redis
+            redis_conn = get_redis_connection('cart')
+            #     3.2 删除数据 hash,set
+            redis_conn.hdel('cart_%s'%user.id,sku_id)
+            redis_conn.srem('cart_selected_%s'%user.id,sku_id)
+            #     3.3 返回响应
+            return Response(serializer.data)
+        else:
+            # 4. 未登录用户 cookie
+            #     4.1 获取cookie数据并进行判断
+            cookie_str = request.COOKIES.get('cart')
+            if cookie_str is not None:
+                cart = pickle.loads(base64.b32decode(cookie_str))
+            else:
+                cart = {}
+            #     4.2 删除数据
+            if sku_id is cart:
+                del cart[sku_id]
+
+            #     4.3 dict 对购物车数据进行处理
+            new_cookie = base64.b64encode(pickle.dumps(cart)).decode()
+            #     4.4 返回响应
+            response = Response(serializer.data)
+
+            response.set_cookie('cart',new_cookie)
+
+            return Response
