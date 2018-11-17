@@ -9,6 +9,7 @@ from goods.models import SKU
 from users.models import User
 from users.serializers import RegisterCreateUserSerializer, SKUSerializer
 from users.utils import generic_active_url, get_active_user
+from utils.cart import merge_cookie_to_redis
 
 
 class RegisterUsernameCountView(APIView):
@@ -404,3 +405,22 @@ class UserHistoryView(CreateModelMixin,GenericAPIView):
         # 序列化
         serializer = SKUSerializer(skus, many=True)
         return Response(serializer.data)
+
+
+from rest_framework_jwt.views import ObtainJSONWebToken
+
+class UserAuthorizationView(ObtainJSONWebToken):
+    def post(self, request, *args, **kwargs):
+        #调用jwt扩展的方法，对用户登录的数据进行验证
+        response = super().post(request)
+
+        # 如果用户登录成功，进行购物车数据合并
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+
+            # 表示用户登录成功
+            user = serializer.get_serializer(data=request.data)
+            # 合并购物车
+            response = merge_cookie_to_redis(request,user,response)
+
+        return response

@@ -6,7 +6,8 @@ urlpatterns = [
     url(r'^usernames/(?P<username>\w{5,20})/count/$',views.RegisterUsernameCountView.as_view(),name='usernamecount'),
     url(r'^$',views.RegisterCreateUserView.as_view()),
     url(r'^phones/(?P<mobile>1[345789]\d{9})/count/$',views.RegisterPhoneCountAPIView.as_view(),name='phonecount'),
-    url(r'^auths/',obtain_jwt_token),
+    # url(r'^auths/',obtain_jwt_token),
+    url(r'^auths/',views.UserAuthorizationView.as_view()),
     #/users/infos/
     url(r'^infos/$',views.UserCenterView.as_view()),
     #/users/emails/
@@ -17,4 +18,5 @@ urlpatterns = [
 
     #/users/browerhistories/
     url(r'^browerhistories/$',views.UserHistoryView.as_view(),name='history'),
+
 ]
