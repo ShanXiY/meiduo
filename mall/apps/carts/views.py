@@ -191,10 +191,15 @@ class CartView(APIView):
             redis_cart_select = redis_conn.smembers('cart_selected_%s' % user.id)
             cart = {}
             for sku_id, count in redis_cart.items():
+                # cart[sku_id] = {
+                #     'count': count,
+                #     'selected': sku_id in redis_cart_select
+                # }
                 cart[int(sku_id)] = {
                     'count': int(count),
                     'selected': sku_id in redis_cart_select
                 }
+
 
         else:
             # 非登录用户,从cookie中获取数据
