@@ -141,8 +141,26 @@ class OrderCommitSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError('库存不足')
 
             #     11. 我们需要修改商品的库存和销量
-                sku.stock -= count
-                sku.sales += count
+                import time
+                time.sleep(5)
+
+            #     sku.stock -= count
+            #     sku.sales += count
+                #乐观锁，并不是真的锁
+                #他先查询(记录)库存，等修改的时候再查询一次库存
+
+                #①先记录库存
+                old_stock = sku.stock
+
+                #②最终肯定要更新数据，所以先把最新的数据准备好
+                new_stock = sku.stock - count
+                new_sales = sku.stock + count
+
+                #③修改数据时，再查询一次
+                result = SKU.objects.filter(pk=sku.id,stock=old_stock).update(stock=new_stock,sales=new_sales)
+
+                if result == 0:
+                    raise serializers.ValidationError('下单失败')
 
             #     12. 我们需要累计 总的商品价格和数量
                 order.total_count += count
