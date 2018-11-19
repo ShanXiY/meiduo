@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 
 from goods.models import SKU
+from orders.serializers import OrderPlacesSerializer
 
 """
  当用户点击结算的时候,必须让用户登录
@@ -70,3 +71,24 @@ class PlaceOrderView(APIView):
         # 5. 返回响应
 
         return Response(serializer.data)
+
+"""
+
+ 当用户点击提交按钮的时候 ,前端应该将 用户信息(header jwt-token),收货地址,支付方式传递过来
+
+ 1. 接收数据
+ 2. 校验
+ 3. 保存数据
+ 4. 返回响应
+
+ POST   /orders/
+"""
+
+from rest_framework.mixins import CreateModelMixin
+from rest_framework.generics import CreateAPIView
+from .serializers import OrderPlacesSerializer
+
+class OrderCreateAPIView(CreateAPIView):
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderPlacesSerializer
