@@ -1,3 +1,5 @@
+from django.contrib.gis.geos import point
+from django.db import transaction
 from rest_framework import serializers
 
 from goods.models import SKU
@@ -99,59 +101,64 @@ class OrderCommitSerializer(serializers.ModelSerializer):
             #支付宝
             status = OrderInfo.ORDER_STATUS_ENUM['UNPAID']
 
-        order = OrderInfo.objects.create(
-            order_id=order_id,
-            user=user,
-            address=address,
-            total_amount=total_amount,
-            total_count=total_count,
-            freight=freight,
-            pay_method=pay_method,
-            status=status
-        )
+        #我们应该在这里开始进行事务
+        with transaction.atomic():
 
-        # 7. 连接redis,获取redis数据
-        redis_conn = get_redis_connection('cart')
-
-        #hash
-        sku_id_count =redis_conn.hgetall('cart_%s'%user.id)
-
-        #set
-        selected_ids = redis_conn.smsmbers('cart_selected_%s'%user.id)
-        # 8. 获取选中商品的信息  {sku_id:count}
-        selected_cart = {}
-        for sku_id in selected_ids:
-            selected_cart[int(sku_id)] = int(sku_id_count[sku_id])
-
-        # 9. 根据id 获取商品的信息  [SKU,SKU,SKu]
-        skus = SKU.objects.filter(pk__in=selected_cart.keys())
-
-        # 10.我们需要对 商品信息进行遍历
-        for sku in skus:
-            #获取数量
-            count = selected_cart[sku.id]
-
-            #判断售卖数量和库存
-            if count > sku.stock:
-                raise serializers.ValidationError('库存不足')
-
-        #     11. 我们需要修改商品的库存和销量
-            sku.stock -= count
-            sku.sales += count
-
-        #     12. 我们需要累计 总的商品价格和数量
-            order.total_count += count
-            order.total_amount += (sku.price*count)
-
-        #     13. 保存商品
-            OrderGoods.objedcts.create(
-                order=order,
-                sku=sku,
-                count=count,
-                price=sku.price
+            order = OrderInfo.objects.create(
+                order_id=order_id,
+                user=user,
+                address=address,
+                total_amount=total_amount,
+                total_count=total_count,
+                freight=freight,
+                pay_method=pay_method,
+                status=status
             )
-        #对商品的数量和总价格进行了累加，所以要保存
-        order.save()
+
+            # 7. 连接redis,获取redis数据
+            redis_conn = get_redis_connection('cart')
+
+            #hash
+            sku_id_count =redis_conn.hgetall('cart_%s'%user.id)
+
+            #set
+            selected_ids = redis_conn.smsmbers('cart_selected_%s'%user.id)
+            # 8. 获取选中商品的信息  {sku_id:count}
+            selected_cart = {}
+            for sku_id in selected_ids:
+                selected_cart[int(sku_id)] = int(sku_id_count[sku_id])
+
+            # 9. 根据id 获取商品的信息  [SKU,SKU,SKu]
+            skus = SKU.objects.filter(pk__in=selected_cart.keys())
+
+            # 10.我们需要对 商品信息进行遍历
+            for sku in skus:
+                #获取数量
+                count = selected_cart[sku.id]
+
+                #判断售卖数量和库存
+                if count > sku.stock:
+                    raise serializers.ValidationError('库存不足')
+
+            #     11. 我们需要修改商品的库存和销量
+                sku.stock -= count
+                sku.sales += count
+
+            #     12. 我们需要累计 总的商品价格和数量
+                order.total_count += count
+                order.total_amount += (sku.price*count)
+
+            #     13. 保存商品
+                OrderGoods.objedcts.create(
+                    order=order,
+                    sku=sku,
+                    count=count,
+                    price=sku.price
+                )
+            #对商品的数量和总价格进行了累加，所以要保存
+            order.save()
+
+            transaction.savepoint_commit(point)
 
         return order
 
