@@ -288,7 +288,7 @@ class CartView(APIView):
                     'selected':selected
                 }
             #5.3对字典进行处理
-            new_cookie = base64.b32decode(pickle.dumps(cart)).decode()
+            new_cookie = base64.b64encode(pickle.dumps(cart)).decode()
             #5.4返回响应
             response = Response(serializer.data)
             response.set_cookie('cart',new_cookie)
@@ -336,7 +336,7 @@ class CartView(APIView):
             #     4.1 获取cookie数据并进行判断
             cookie_str = request.COOKIES.get('cart')
             if cookie_str is not None:
-                cart = pickle.loads(base64.b32decode(cookie_str))
+                cart = pickle.loads(base64.b64decode(cookie_str))
             else:
                 cart = {}
             #     4.2 删除数据
@@ -350,4 +350,4 @@ class CartView(APIView):
 
             response.set_cookie('cart',new_cookie)
 
-            return Response
+            return response

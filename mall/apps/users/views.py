@@ -419,7 +419,7 @@ class UserAuthorizationView(ObtainJSONWebToken):
         if serializer.is_valid():
 
             # 表示用户登录成功
-            user = serializer.get_serializer(data=request.data)
+            user = serializer.validated_data.get("user")
             # 合并购物车
             response = merge_cookie_to_redis(request,user,response)
 
