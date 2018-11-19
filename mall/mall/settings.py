@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'django_crontab',  # 定时任务
     'haystack',  #搜索
     'carts.apps.CartsConfig', #购物车
+    'orders.apps.OrdersConfig',  #订单
 ]
 
 # 定时任务
